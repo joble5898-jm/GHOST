@@ -13,7 +13,13 @@ import {
 import { GoogleGenAI } from "@google/genai";
 import { cn } from '@/src/lib/utils';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const getAI = () => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not defined. Please set it in your environment variables.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 interface Message {
   role: 'user' | 'agent' | 'system';
@@ -56,6 +62,7 @@ export default function LiveChat() {
     setIsGhosted(false);
 
     try {
+      const ai = getAI();
       const prompt = `You are GHOST, an AI sales agent for a premium SaaS product. 
       The user is a potential customer. 
       Your goal is to be helpful, professional, and slightly persuasive.
@@ -99,6 +106,7 @@ export default function LiveChat() {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
+      const ai = getAI();
       const prompt = `You are the GHOST Resurrection Engine. 
       The user has just "ghosted" the sales agent after this conversation:
       

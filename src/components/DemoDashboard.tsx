@@ -17,7 +17,13 @@ import { GoogleGenAI, Type } from "@google/genai";
 import ChatPreview from './ChatPreview';
 import { cn } from '@/src/lib/utils';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const getAI = () => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not defined. Please set it in your environment variables.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 interface Lead {
   id: string;
@@ -81,6 +87,7 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
     if (!lead) return;
 
     try {
+      const ai = getAI();
       const prompt = `Analyze this WhatsApp conversation history and perform an "autopsy" to understand why the lead went silent.
       
       Conversation:
