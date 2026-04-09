@@ -1,20 +1,19 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# GHOST - Autonomous AI Agent for WhatsApp Lead Resurrection
 
-# Run and deploy your AI Studio app
+GHOST is an autonomous AI agent that lives inside WhatsApp and hunts down every abandoned conversation.
 
-This contains everything you need to run your app locally.
+## Deployment to Vercel
 
-View your app in AI Studio: https://ai.studio/apps/3b4f7ecd-22ec-43f6-bd62-17611a304ced
+1. **Push to GitHub**: Push this repository to your GitHub account.
+2. **Import to Vercel**: Go to [Vercel](https://vercel.com) and import the project.
+3. **Environment Variables**: Add the following environment variable in the Vercel project settings:
+   - `GEMINI_API_KEY`: Your Google Gemini API Key.
+4. **Build Settings**:
+   - Framework Preset: `Vite`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Tech Stack
+- **Frontend**: React 19, Vite, Tailwind CSS, Framer Motion
+- **AI**: Google Gemini 3 Flash
+- **Icons**: Lucide React
