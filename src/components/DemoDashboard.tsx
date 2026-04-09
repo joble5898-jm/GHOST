@@ -10,9 +10,13 @@ import {
   Pause,
   RefreshCw,
   ArrowLeft,
-  Loader2
+  Loader2,
+  Activity,
+  TrendingUp,
+  Users,
+  Target
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, Type } from "@google/genai";
 import ChatPreview from './ChatPreview';
 import { cn } from '@/src/lib/utils';
@@ -33,6 +37,14 @@ interface Lead {
   status: 'idle' | 'scanning' | 'autopsy' | 'resurrected';
   history: { role: 'user' | 'agent'; text: string; time: string }[];
   autopsy?: any;
+}
+
+interface ActivityLog {
+  id: string;
+  type: 'system' | 'api' | 'ai' | 'success' | 'warning';
+  message: string;
+  time: string;
+  meta?: string;
 }
 
 const MOCK_LEADS: Lead[] = [
@@ -78,8 +90,74 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
   const [leads, setLeads] = useState<Lead[]>(MOCK_LEADS);
   const [isHunting, setIsHunting] = useState(false);
   const [activeLeadId, setActiveLeadId] = useState<string | null>(null);
+  const [logs, setLogs] = useState<ActivityLog[]>([
+    { id: '1', type: 'system', message: 'GHOST System Initialized', time: '10:00 AM', meta: 'v1.0.4' },
+    { id: '2', type: 'api', message: 'Connected to Happilee WhatsApp API', time: '10:01 AM', meta: '200 OK' }
+  ]);
+  const [stats, setStats] = useState({
+    scanned: 1242,
+    resurrected: 84,
+    conversion: 12.4
+  });
+
+  const logEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs]);
+
+  // Simulated Hunting Activity
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isHunting) {
+      interval = setInterval(() => {
+        const events: { type: ActivityLog['type']; msg: string; meta?: string }[] = [
+          { type: 'api', msg: 'GET /v1/messages/stream', meta: '200 OK' },
+          { type: 'system', msg: 'Scanning thread pool...', meta: '124 active' },
+          { type: 'ai', msg: 'Analyzing sentiment for Thread #8292', meta: 'Gemini-3-Flash' },
+          { type: 'api', msg: 'Happilee Webhook Heartbeat', meta: 'latency: 42ms' },
+          { type: 'system', msg: 'Idle threshold reached for Lead "Marcus"', meta: '72h silent' },
+          { type: 'ai', msg: 'Drafting resurrection strategy...', meta: 'Strategy: Value-First' },
+          { type: 'success', msg: 'Message queued for delivery', meta: 'Happilee API' },
+          { type: 'system', msg: 'Memory cleanup: Flushed 12 inactive buffers', meta: '0.4s' }
+        ];
+        
+        const event = events[Math.floor(Math.random() * events.length)];
+        
+        const newLog: ActivityLog = {
+          id: Date.now().toString(),
+          type: event.type,
+          message: event.msg,
+          meta: event.meta,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        };
+
+        setLogs(prev => [...prev.slice(-20), newLog]);
+        setStats(prev => ({
+          ...prev,
+          scanned: prev.scanned + Math.floor(Math.random() * 5)
+        }));
+      }, 2500);
+    }
+    return () => clearInterval(interval);
+  }, [isHunting]);
+
+  const addLog = (type: ActivityLog['type'], message: string, meta?: string) => {
+    setLogs(prev => [...prev.slice(-20), {
+      id: Date.now().toString(),
+      type,
+      message,
+      meta,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }]);
+  };
 
   const runAutopsy = async (leadId: string) => {
+    addLog('ai', `Initializing Neural Autopsy`, `Lead: ${leadId}`);
+    addLog('system', `Fetching conversation context...`, `Happilee DB`);
+    
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: 'autopsy' } : l));
     setActiveLeadId(leadId);
 
@@ -88,6 +166,8 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
 
     try {
       const ai = getAI();
+      addLog('ai', `Analyzing customer intent & blockers`, `Gemini 3.0`);
+      
       const prompt = `Analyze this WhatsApp conversation history and perform an "autopsy" to understand why the lead went silent.
       
       Conversation:
@@ -123,6 +203,8 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
       });
 
       const result = JSON.parse(response.text);
+      addLog('success', `Autopsy Complete: ${result.ghost_reason}`, `Conf: ${Math.round(result.confidence * 100)}%`);
+      addLog('api', `POST /v1/messages/send`, `Status: 202`);
       
       setLeads(prev => prev.map(l => l.id === leadId ? { 
         ...l, 
@@ -134,8 +216,15 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
           message: result.resurrection_message
         } 
       } : l));
+
+      setStats(prev => ({
+        ...prev,
+        resurrected: prev.resurrected + 1,
+        conversion: Number((((prev.resurrected + 1) / (prev.scanned / 10)) * 100).toFixed(1))
+      }));
     } catch (error) {
       console.error("Autopsy failed:", error);
+      addLog('warning', `Neural Engine Error`, `Check API Key`);
       setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: 'idle' } : l));
     }
   };
@@ -228,6 +317,25 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
+        {/* Active Analytics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { label: 'Threads Scanned', value: stats.scanned.toLocaleString(), icon: Users, color: 'text-blue-400' },
+            { label: 'Leads Resurrected', value: stats.resurrected, icon: Target, color: 'text-emerald-400' },
+            { label: 'Conversion Rate', value: `${stats.conversion}%`, icon: TrendingUp, color: 'text-purple-400' },
+          ].map((stat, i) => (
+            <div key={i} className="p-6 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-between group hover:border-white/20 transition-all">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">{stat.label}</p>
+                <p className={cn("text-2xl font-black", stat.color)}>{stat.value}</p>
+              </div>
+              <div className={cn("p-3 rounded-2xl bg-white/5", stat.color)}>
+                <stat.icon className="w-5 h-5" />
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Add Custom Chat Modal */}
         <AnimatePresence>
           {isAdding && (
@@ -271,7 +379,7 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
           )}
         </AnimatePresence>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-4 gap-8">
           {/* Leads List */}
           <div className="lg:col-span-1 space-y-4">
             <div className="flex items-center justify-between px-2">
@@ -279,7 +387,7 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
               <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full border border-white/10">{leads.length} Found</span>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 scrollbar-hide">
               {leads.map((lead) => (
                 <motion.div
                   key={lead.id}
@@ -396,6 +504,52 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
                 </div>
               )}
             </AnimatePresence>
+          </div>
+
+          {/* Live Activity Feed */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-white/40">Live Activity</h2>
+              <Activity className={cn("w-4 h-4", isHunting ? "text-emerald-400 animate-pulse" : "text-white/20")} />
+            </div>
+            <div className="bg-[#0A0A0A] border border-white/10 rounded-[2rem] p-4 h-[600px] flex flex-col font-mono">
+              <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide">
+                {logs.map((log) => (
+                  <div key={log.id} className="group">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          "text-[7px] font-black uppercase px-1 py-0.5 rounded",
+                          log.type === 'system' ? "bg-blue-500/20 text-blue-400" :
+                          log.type === 'api' ? "bg-emerald-500/20 text-emerald-400" :
+                          log.type === 'ai' ? "bg-purple-500/20 text-purple-400" :
+                          log.type === 'success' ? "bg-emerald-500/20 text-emerald-400" :
+                          "bg-rose-500/20 text-rose-400"
+                        )}>
+                          {log.type}
+                        </span>
+                        {log.meta && (
+                          <span className="text-[7px] text-white/20 uppercase tracking-tighter">
+                            [{log.meta}]
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[7px] text-white/10">{log.time}</span>
+                    </div>
+                    <p className="text-[9px] text-white/50 group-hover:text-white/80 transition-colors">
+                      <span className="text-white/20 mr-1">›</span>
+                      {log.message}
+                    </p>
+                  </div>
+                ))}
+                <div ref={logEndRef} />
+              </div>
+              {!isHunting && (
+                <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/5 text-center">
+                  <p className="text-[9px] text-white/30 italic">GHOST_ENGINE_IDLE: Waiting for Start Command...</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
