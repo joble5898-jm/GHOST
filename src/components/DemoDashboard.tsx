@@ -20,25 +20,7 @@ import { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, Type } from "@google/genai";
 import ChatPreview from './ChatPreview';
 import { cn } from '@/src/lib/utils';
-
-const getAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === "") {
-    throw new Error("GEMINI_API_KEY is missing. Please set it in the Settings menu.");
-  }
-  return new GoogleGenAI({ apiKey });
-};
-
-const cleanJson = (text: string) => {
-  try {
-    // Remove markdown code blocks if present
-    const cleaned = text.replace(/```json\n?|```/g, '').trim();
-    return JSON.parse(cleaned);
-  } catch (e) {
-    console.error("JSON Parse Error:", e, "Original text:", text);
-    throw new Error("Failed to parse AI response. Please try again.");
-  }
-};
+import { getAI, cleanJson } from '../lib/ai';
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -325,7 +307,7 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
                   <span className="text-[10px] text-white/40 uppercase font-bold tracking-tighter">
                     AI: {aiStatus === 'ready' ? "Connected" : aiStatus === 'error' ? "Error" : "Connecting..."}
                   </span>
-                  {aiStatus === 'error' && (
+                  {aiStatus !== 'ready' && (
                     <button 
                       onClick={checkAI}
                       className="p-1 hover:bg-white/10 rounded transition-colors"

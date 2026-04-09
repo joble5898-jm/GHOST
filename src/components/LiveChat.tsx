@@ -12,14 +12,7 @@ import {
 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { cn } from '@/src/lib/utils';
-
-const getAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === "") {
-    throw new Error("GEMINI_API_KEY is missing. Please set it in the Settings menu.");
-  }
-  return new GoogleGenAI({ apiKey });
-};
+import { getAI } from '../lib/ai';
 
 interface Message {
   role: 'user' | 'agent' | 'system';
