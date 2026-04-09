@@ -1,20 +1,5 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/3b4f7ecd-22ec-43f6-bd62-17611a304ced
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+GHOST is an intelligent AI agent designed to recover lost leads on WhatsApp by automatically reactivating abandoned conversations. In today’s fast-paced digital communication, businesses lose a significant number of potential customers simply because follow-ups don’t happen at the right time or in the right way. GHOST solves this silent problem by stepping in exactly when a conversation goes cold.
+The system continuously monitors chat activity and identifies inactive conversations where a customer has stopped responding. Instead of sending generic follow-up messages, GHOST analyzes the entire conversation history to understand the likely reason behind the silence—whether it’s hesitation, confusion, pricing concerns, or simple distraction.
+Based on this insight, it generates a personalized, human-like message that matches the customer’s tone, language style, and engagement pattern. It also determines the best time to send the message, increasing the chances of getting a response.
+Integrated directly with WhatsApp through automation platforms like Happilee, GHOST works in the background without requiring manual effort from the business. Over time, it learns from customer interactions and continuously improves its messaging strategies.
+By turning missed conversations into second chances, GHOST helps businesses increase engagement, recover lost opportunities, and ultimately drive more conversions—automatically and intelligently.
