@@ -1,20 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+GHOST is an autonomous AI agent designed to solve one of the most overlooked problems in modern business communication: lost conversations on WhatsApp. Every day, businesses interact with potential customers through chat, but a large percentage of these conversations go silent before conversion. These “ghosted” leads represent missed opportunities and lost revenue.
 
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/3b4f7ecd-22ec-43f6-bd62-17611a304ced
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+GHOST addresses this problem by automatically identifying inactive conversations, understanding why the customer disengaged, and reactivating them with intelligent, personalized follow-up messages. It operates seamlessly in the background, requiring no manual intervention while continuously improving its performance over time.
