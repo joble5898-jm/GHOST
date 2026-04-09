@@ -15,8 +15,8 @@ import { cn } from '@/src/lib/utils';
 
 const getAI = () => {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not defined. Please set it in your environment variables.");
+  if (!apiKey || apiKey === "") {
+    throw new Error("GEMINI_API_KEY is missing. Please set it in the Settings menu.");
   }
   return new GoogleGenAI({ apiKey });
 };
@@ -39,6 +39,7 @@ export default function LiveChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGhosted, setIsGhosted] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,6 +61,7 @@ export default function LiveChat() {
     setInput("");
     setIsLoading(true);
     setIsGhosted(false);
+    setChatError(null);
 
     try {
       const ai = getAI();
@@ -78,15 +80,18 @@ export default function LiveChat() {
         contents: prompt,
       });
 
+      if (!response.text) throw new Error("AI returned an empty response.");
+
       const agentMsg: Message = {
         role: 'agent',
-        text: response.text || "I'm here to help! What else would you like to know?",
+        text: response.text,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
       setMessages(prev => [...prev, agentMsg]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Chat failed:", error);
+      setChatError(error.message || "Chat failed. Check your API key.");
     } finally {
       setIsLoading(false);
     }
@@ -104,6 +109,7 @@ export default function LiveChat() {
 
     // Wait for "autopsy"
     await new Promise(resolve => setTimeout(resolve, 2000));
+    setChatError(null);
 
     try {
       const ai = getAI();
@@ -122,15 +128,18 @@ export default function LiveChat() {
         contents: prompt,
       });
 
+      if (!response.text) throw new Error("AI returned an empty response.");
+
       const resurrectionMsg: Message = {
         role: 'agent',
-        text: response.text || "Hey! Just checking in to see if you had any more questions about our plans?",
+        text: response.text,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
       setMessages(prev => [...prev, resurrectionMsg]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Resurrection failed:", error);
+      setChatError(error.message || "Resurrection failed.");
     }
   };
 
@@ -198,6 +207,12 @@ export default function LiveChat() {
                 <div className="flex items-center gap-2 text-white/40 text-xs italic">
                   <Loader2 className="w-3 h-3 animate-spin" />
                   GHOST is typing...
+                </div>
+              )}
+              {chatError && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] flex items-center gap-2">
+                  <Sparkles className="w-3 h-3" />
+                  {chatError}
                 </div>
               )}
             </div>
