@@ -130,23 +130,26 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
   const [aiStatus, setAiStatus] = useState<'checking' | 'ready' | 'error'>('checking');
   const [aiError, setAiError] = useState<string | null>(null);
 
+  const checkAI = async () => {
+    setAiStatus('checking');
+    setAiError(null);
+    try {
+      const ai = getAI();
+      // Simple test call
+      await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: "hi",
+      });
+      setAiStatus('ready');
+      setAiError(null);
+    } catch (error: any) {
+      console.error("AI Check failed:", error);
+      setAiStatus('error');
+      setAiError(error.message || "AI connection failed");
+    }
+  };
+
   useEffect(() => {
-    const checkAI = async () => {
-      try {
-        const ai = getAI();
-        // Simple test call
-        await ai.models.generateContent({
-          model: "gemini-3-flash-preview",
-          contents: "hi",
-        });
-        setAiStatus('ready');
-        setAiError(null);
-      } catch (error: any) {
-        console.error("AI Check failed:", error);
-        setAiStatus('error');
-        setAiError(error.message || "AI connection failed");
-      }
-    };
     checkAI();
   }, []);
 
@@ -322,12 +325,29 @@ export default function DemoDashboard({ onBack }: { onBack: () => void }) {
                   <span className="text-[10px] text-white/40 uppercase font-bold tracking-tighter">
                     AI: {aiStatus === 'ready' ? "Connected" : aiStatus === 'error' ? "Error" : "Connecting..."}
                   </span>
+                  {aiStatus === 'error' && (
+                    <button 
+                      onClick={checkAI}
+                      className="p-1 hover:bg-white/10 rounded transition-colors"
+                      title="Retry Connection"
+                    >
+                      <RefreshCw className={cn("w-3 h-3 text-purple-400", aiStatus === 'checking' && "animate-spin")} />
+                    </button>
+                  )}
                 </div>
               </div>
               {aiError && (
-                <div className="mt-2 flex items-center gap-2 text-[10px] text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-lg">
-                  <AlertCircle className="w-3 h-3" />
-                  {aiError}
+                <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-3 h-3" />
+                    {aiError}
+                  </div>
+                  <button 
+                    onClick={() => window.location.reload()}
+                    className="underline hover:text-rose-300 transition-colors"
+                  >
+                    Reload App
+                  </button>
                 </div>
               )}
             </div>
